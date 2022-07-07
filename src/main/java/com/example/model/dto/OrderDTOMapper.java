@@ -1,5 +1,11 @@
-package com.example.model;
+package com.example.model.dto;
 
+
+import com.example.model.db.LimitOrder;
+import com.example.model.db.Order;
+import com.example.model.db.PriceInformation;
+import com.example.model.dto.LimitOrderDTO;
+import com.example.model.dto.PriceInformationDTO;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;

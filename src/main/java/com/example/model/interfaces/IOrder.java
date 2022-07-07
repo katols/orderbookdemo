@@ -1,6 +1,9 @@
-package com.example.model;
+package com.example.model.interfaces;
 
-import com.example.demo.ExecutionAction;
+import com.example.model.domain.ExecutionAction;
+import com.example.model.domain.OrderSide;
+import com.example.model.domain.OrderStatus;
+import com.example.model.db.PriceInformation;
 
 import java.math.BigDecimal;
 import java.util.LinkedList;
@@ -9,10 +12,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public interface IOrder {
-    IOrder create(PriceInformation priceInformation,
-                  BigDecimal qtyAddedOrRemoved,
-                  OrderSide side,
-                  String ticker);
 
     PriceInformation getPriceInformation();
 

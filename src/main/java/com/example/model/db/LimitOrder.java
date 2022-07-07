@@ -1,6 +1,9 @@
-package com.example.model;
+package com.example.model.db;
 
-import com.example.demo.ExecutionAction;
+import com.example.model.domain.ExecutionAction;
+import com.example.model.interfaces.IOrder;
+import com.example.model.domain.OrderSide;
+import com.example.model.domain.OrderStatus;
 import lombok.Data;
 
 import javax.persistence.DiscriminatorValue;
@@ -58,11 +61,6 @@ public class LimitOrder extends Order {
     }
     private boolean isMatch(IOrder order, PriceInformation next) {
         return order.getSide().isBuy() ? (order.getPriceInformation().getPrice().compareTo(next.getPrice()) >= 0) : (order.getPriceInformation().getPrice().compareTo(next.getPrice()) <= 0);
-    }
-
-    @Override
-    public IOrder create(PriceInformation priceInformation, BigDecimal qtyAddedOrRemoved, OrderSide side, String ticker) {
-        return null;
     }
 
     @Override

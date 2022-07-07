@@ -1,6 +1,9 @@
-package com.example.model;
+package com.example.model.db;
 
-import com.example.demo.ExecutionAction;
+import com.example.model.domain.ExecutionAction;
+import com.example.model.interfaces.IOrder;
+import com.example.model.domain.OrderSide;
+import com.example.model.domain.OrderStatus;
 import lombok.*;
 
 import javax.persistence.*;
@@ -30,7 +33,7 @@ public abstract class Order implements IOrder {
     @NonNull
     private OrderSide side;
     @NonNull
-    private String ticker; //instrument name
+    private String ticker;
 
     private BigDecimal volume;
     @Column
@@ -45,9 +48,6 @@ public abstract class Order implements IOrder {
         this.orderStatus = OrderStatus.OPEN;
     }
 
-    public PriceInformation getPriceInformation() {
-        return this.priceInformation;
-    }
 
     //TODO: Should the order be immutable or not?
     @Override
@@ -57,6 +57,14 @@ public abstract class Order implements IOrder {
     @Override
     public abstract Map<ExecutionAction, List<IOrder>> matchAgainstExistingOrders(IOrder order, TreeMap<PriceInformation, LinkedList<IOrder>> orders);
 
+    @Override
+    public OrderStatus getOrderStatus(){
+        return this.orderStatus;
+    };
+    @Override
+    public PriceInformation getPriceInformation() {
+        return this.priceInformation;
+    }
     void updateChangedOrders(Map<ExecutionAction, List<IOrder>> changedOrders, ExecutionAction action, IOrder next) {
         List<IOrder> orders = changedOrders.get(action);
         if (orders == null) {
@@ -72,24 +80,16 @@ public abstract class Order implements IOrder {
         changedOrders.put(ExecutionAction.UPDATE, new ArrayList<>());
         return changedOrders;
     }
-
-    public void setPriceInformation(PriceInformation priceInformation) {
-        this.priceInformation = priceInformation;
+    void closeOrder(Iterator<IOrder> iterator, IOrder nextOrder) {
+        iterator.remove();
+        nextOrder.setOrderStatus(OrderStatus.CLOSED);
     }
-    @Override
-    public OrderStatus getOrderStatus(){
-        return this.orderStatus;
-    };
 
     @PrePersist
     private void createTimeStamp() {
         this.creationTime = Timestamp.from(ZonedDateTime.from(ZonedDateTime.now(ZoneId.of("UTC"))).toInstant());
     }
 
-    void closeOrder(Iterator<IOrder> iterator, IOrder nextOrder) {
-        iterator.remove();
-        nextOrder.setOrderStatus(OrderStatus.CLOSED);
-    }
 
 
 

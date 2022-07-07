@@ -1,4 +1,6 @@
-package com.example.model;
+package com.example.model.domain;
+
+import com.example.model.db.PriceInformation;
 
 import java.util.Comparator;
 

@@ -1,7 +1,10 @@
 package com.example.demo;
 
-import com.example.demo.model.ExecutionStatus;
-import com.example.model.*;
+import com.example.model.domain.*;
+import com.example.model.db.LimitOrder;
+import com.example.model.db.Order;
+import com.example.model.db.PriceInformation;
+import com.example.model.dto.OrderDTOMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;

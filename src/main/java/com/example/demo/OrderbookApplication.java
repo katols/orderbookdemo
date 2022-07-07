@@ -1,6 +1,6 @@
 package com.example.demo;
 
-import com.example.model.OrderBook;
+import com.example.model.domain.OrderBook;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,13 +30,13 @@ public class OrderbookApplication {
 	}
 	public OrderbookApplication(OrderBookService orderBookService){
 		this.orderBookService = orderBookService;
-		//TODO: Fix this shitty registration. Maybe add an xml?
+		//TODO: Fix this registration. Maybe add an xml?
 		orderBookService.registerOrderBook(new OrderBook("AAPL"));
 		orderBookService.registerOrderBook(new OrderBook("SAVE"));
 		orderBookService.registerOrderBook(new OrderBook("TSLA"));
 	}
 
-	@Bean
+/*	@Bean
 	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
 		return args -> {
 
@@ -49,6 +49,6 @@ public class OrderbookApplication {
 			}
 
 		};
-	}
+	}*/
 
 }

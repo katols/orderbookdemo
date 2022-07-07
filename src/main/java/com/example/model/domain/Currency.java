@@ -1,3 +1,3 @@
-package com.example.model;
+package com.example.model.domain;
 
 public enum Currency {SEK, USD, EUR}

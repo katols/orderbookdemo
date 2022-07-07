@@ -1,5 +1,8 @@
-package com.example.model;
+package com.example.model.dto;
 
+import com.example.model.domain.Currency;
+import com.example.model.domain.OrderSide;
+import com.example.model.domain.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

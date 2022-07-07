@@ -1,7 +1,12 @@
 package com.example.demo;
 
-import com.example.demo.model.ExecutionStatus;
-import com.example.model.*;
+import com.example.model.domain.*;
+import com.example.model.db.Order;
+import com.example.model.db.PriceInformation;
+import com.example.model.dto.LimitOrderDTO;
+import com.example.model.dto.OrderDTOMapper;
+import com.example.model.dto.OrderStatisticsDTO;
+import com.example.model.interfaces.IOrder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;

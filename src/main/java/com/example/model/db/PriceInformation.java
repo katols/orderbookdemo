@@ -1,5 +1,6 @@
-package com.example.model;
+package com.example.model.db;
 
+import com.example.model.domain.Currency;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

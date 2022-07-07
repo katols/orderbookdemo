@@ -1,9 +1,9 @@
 package com.example.demo;
 
 
-import com.example.demo.model.ExecutionStatus;
-import com.example.model.LimitOrderDTO;
-import com.example.model.OrderStatisticsDTO;
+import com.example.model.domain.ExecutionStatus;
+import com.example.model.dto.LimitOrderDTO;
+import com.example.model.dto.OrderStatisticsDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
