@@ -1,9 +1,6 @@
 package com.example.demo;
 
-import com.example.model.Currency;
-import com.example.model.LimitOrder;
-import com.example.model.OrderSide;
-import com.example.model.PriceInformation;
+import com.example.model.*;
 
 import java.math.BigDecimal;
 import java.util.logging.Level;
@@ -33,16 +30,16 @@ public class OrderProducer implements Runnable {
     }
 
     public void produceOrder() {
-         LimitOrder order = createRandomOrder();
+         Order order = createRandomOrder();
         this.orderConsumer.acceptOrder(order);
         producedMessges++;
       //  logger.log(Level.FINE, "Produced: " + order);
     }
 
-    private LimitOrder createRandomOrder() {
+    private Order createRandomOrder() {
         boolean buy = (Math.random() * 10) >= 5 ? true : false;
         OrderSide side = buy? OrderSide.BUY : OrderSide.SELL;
-        return new LimitOrder(new PriceInformation(), new BigDecimal(10.0),side,"tick");
+        return new LimitOrder(new PriceInformation(), new BigDecimal(10.0),side,"tick", OrderStatus.OPEN);
     }
 
 }

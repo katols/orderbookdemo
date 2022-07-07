@@ -22,14 +22,14 @@ import static org.mockito.Mockito.when;
 public class OrderBookServiceTest {
     OrderBookService orderBookService;
     @MockBean
-    LimitOrderRepository limitOrderRepository;
+    OrderRepository orderRepository;
 
     private static final String TICKER_AAPL = "AAPL";
     private static final String TICKER_SAVE = "SAVE";
 
     @BeforeEach
     public void init() {
-        orderBookService = new OrderBookService(limitOrderRepository);
+        orderBookService = new OrderBookService(orderRepository);
         orderBookService.registerOrderBook(new OrderBook(TICKER_AAPL));
     }
 
@@ -37,10 +37,10 @@ public class OrderBookServiceTest {
 
     @Test
     public void testFullMatchWithTwoEqualOrders() {
-        LimitOrder limitOrder = createLimitOrder(100.0, 10.0, OrderSide.BUY, TICKER_AAPL);
-        assertOrderStatus(limitOrder, ExecutionStatus.NOT_MATCHED);
+        Order order = createLimitOrder(100.0, 10.0, OrderSide.BUY, TICKER_AAPL);
+        assertOrderStatus(order, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder order2 = createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
+        Order order2 = createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(order2, ExecutionStatus.MATCHED);
         assertEquals(new BigDecimal(0).doubleValue(), getTotalQuantityForPriceLevel(100.0).doubleValue());
 
@@ -55,48 +55,48 @@ public class OrderBookServiceTest {
 
     @Test
     public void testFullMatchWithTwoBuyOrdersEqualToOneSellOrder() {
-        LimitOrder buyOrder1 = createLimitOrder(100.0, 5.0, OrderSide.BUY, TICKER_AAPL);
+        Order buyOrder1 = createLimitOrder(100.0, 5.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder1, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder buyOrder2 = createLimitOrder(100.0, 5.0, OrderSide.BUY, TICKER_AAPL);
+        Order buyOrder2 = createLimitOrder(100.0, 5.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder2, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder sellOrder = createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
+        Order sellOrder = createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(sellOrder, ExecutionStatus.MATCHED);
         assertEquals(new BigDecimal(0).doubleValue(), getTotalQuantityForPriceLevel(100.0).doubleValue());
     }
 
     @Test
     public void testFullMatchWithSandwich() {
-        LimitOrder expectedOrder = createLimitOrder(100.0, 5.0, OrderSide.SELL, TICKER_AAPL);
+        Order expectedOrder = createLimitOrder(100.0, 5.0, OrderSide.SELL, TICKER_AAPL);
 
-        LimitOrder buyOrder1 = createLimitOrder(100.0, 5.0, OrderSide.BUY, TICKER_AAPL);
+        Order buyOrder1 = createLimitOrder(100.0, 5.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder1, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder sellOrder = createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
-        when(limitOrderRepository.save(eq(expectedOrder))).thenReturn(expectedOrder);
+        Order sellOrder = createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
+        when(orderRepository.save(eq(expectedOrder))).thenReturn(expectedOrder);
         assertOrderStatus(sellOrder, ExecutionStatus.PARTIALLY_MATCHED);
 
-        LimitOrder buyOrder2 = createLimitOrder(100.0, 5.0, OrderSide.BUY, TICKER_AAPL);
+        Order buyOrder2 = createLimitOrder(100.0, 5.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder2, ExecutionStatus.MATCHED);
         assertEquals(new BigDecimal(0).doubleValue(), getTotalQuantityForPriceLevel(100.0).doubleValue());
     }
 
     @Test
     public void testPartialMatchOnDifferentPriceLevels() {
-        LimitOrder expectedBuyOrder = createLimitOrder(110.0, 30.0, OrderSide.BUY, TICKER_AAPL);
+        Order expectedBuyOrder = createLimitOrder(110.0, 30.0, OrderSide.BUY, TICKER_AAPL);
 
-        LimitOrder order1 = createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
+        Order order1 = createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(order1, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder order2 = createLimitOrder(110.0, 10.0, OrderSide.SELL, TICKER_AAPL);
+        Order order2 = createLimitOrder(110.0, 10.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(order2, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder order3 = createLimitOrder(120.0, 10.0, OrderSide.SELL, TICKER_AAPL);
+        Order order3 = createLimitOrder(120.0, 10.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(order3, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder order4 = createLimitOrder(110.0, 50.0, OrderSide.BUY, TICKER_AAPL);
-        when(limitOrderRepository.save(eq(expectedBuyOrder))).thenReturn(expectedBuyOrder);
+        Order order4 = createLimitOrder(110.0, 50.0, OrderSide.BUY, TICKER_AAPL);
+        when(orderRepository.save(eq(expectedBuyOrder))).thenReturn(expectedBuyOrder);
         assertOrderStatus(order4, ExecutionStatus.PARTIALLY_MATCHED);
         assertEquals(new BigDecimal(30.0).doubleValue(), getTotalQuantityForPriceLevel(110).doubleValue());
         assertEquals(new BigDecimal(10.0).doubleValue(), getTotalQuantityForPriceLevel(120).doubleValue());
@@ -105,16 +105,16 @@ public class OrderBookServiceTest {
 
     @Test
     public void bestDealAtBuyTest() throws JsonProcessingException {
-        LimitOrder sellOrder1 = createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
+        Order sellOrder1 = createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(sellOrder1, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder sellOrder2 = createLimitOrder(110.0, 5.0, OrderSide.SELL, TICKER_AAPL);
+        Order sellOrder2 = createLimitOrder(110.0, 5.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(sellOrder2, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder sellOrder3 = createLimitOrder(120.0, 15.0, OrderSide.SELL, TICKER_AAPL);
+        Order sellOrder3 = createLimitOrder(120.0, 15.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(sellOrder3, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder buyOrder = createLimitOrder(130.0, 14.0, OrderSide.BUY, TICKER_AAPL);
+        Order buyOrder = createLimitOrder(130.0, 14.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder, ExecutionStatus.PARTIALLY_MATCHED);
 
         assertEquals(new BigDecimal(0).doubleValue(), getTotalQuantityForPriceLevel(100).doubleValue());
@@ -128,16 +128,16 @@ public class OrderBookServiceTest {
 
     @Test
     public void bestDealAtSellTest() {
-        LimitOrder buyOrder1 = createLimitOrder(100.0, 10.0, OrderSide.BUY, TICKER_AAPL);
+        Order buyOrder1 = createLimitOrder(100.0, 10.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder1, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder buyOrder2 = createLimitOrder(110.0, 5.0, OrderSide.BUY, TICKER_AAPL);
+        Order buyOrder2 = createLimitOrder(110.0, 5.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder2, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder buyOrder3 = createLimitOrder(120.0, 15.0, OrderSide.BUY, TICKER_AAPL);
+        Order buyOrder3 = createLimitOrder(120.0, 15.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder3, ExecutionStatus.NOT_MATCHED);
 
-        LimitOrder sellOrder = createLimitOrder(100.0, 16.0, OrderSide.SELL, TICKER_AAPL);
+        Order sellOrder = createLimitOrder(100.0, 16.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(sellOrder, ExecutionStatus.PARTIALLY_MATCHED);
 
         assertEquals(new BigDecimal(10.0).doubleValue(), getTotalQuantityForPriceLevel(100).doubleValue());
@@ -148,24 +148,25 @@ public class OrderBookServiceTest {
 
     @Test
     public void correctStatusTest() {
-        LimitOrder expectedBuyOrder = createLimitOrder(100.0, 4.0, OrderSide.BUY, TICKER_AAPL);
-        LimitOrder sellOrder = createLimitOrder(100.0, 4.0, OrderSide.SELL, TICKER_AAPL);
+        Order expectedBuyOrder = createLimitOrder(100.0, 4.0, OrderSide.BUY, TICKER_AAPL);
+        Order sellOrder = createLimitOrder(100.0, 4.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(sellOrder, ExecutionStatus.NOT_MATCHED);
 
-        when(limitOrderRepository.save(eq(expectedBuyOrder))).thenReturn(expectedBuyOrder);
-        LimitOrder buyOrder = createLimitOrder(100.0, 8.0, OrderSide.BUY, TICKER_AAPL);
+        when(orderRepository.save(eq(expectedBuyOrder))).thenReturn(expectedBuyOrder);
+        Order buyOrder = createLimitOrder(100.0, 8.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder, ExecutionStatus.PARTIALLY_MATCHED);
     }
 
-    private LimitOrder createLimitOrder(Double price, Double qty, OrderSide buyOrSell, String ticker) {
+    private Order createLimitOrder(Double price, Double qty, OrderSide buyOrSell, String ticker) {
 
         PriceInformation priceInformation = new PriceInformation(new BigDecimal(price), Currency.SEK);
-        return LimitOrder.builder().priceInformation(priceInformation).
-                quantity(new BigDecimal(qty)).side(buyOrSell).ticker(ticker).orderStatus(OrderStatus.OPEN).build();
+        return new LimitOrder(priceInformation, new BigDecimal(qty), buyOrSell, ticker, OrderStatus.OPEN);
+               /* LimitOrder.builder().priceInformation(priceInformation).
+                quantity(new BigDecimal(qty)).side(buyOrSell).ticker(ticker).orderStatus(OrderStatus.OPEN).build();*/
     }
 
-    private void assertOrderStatus(LimitOrder order, ExecutionStatus expectedStatus) {
-        when(limitOrderRepository.save(eq(order))).thenReturn(order);
+    private void assertOrderStatus(Order order, ExecutionStatus expectedStatus) {
+        when(orderRepository.save(eq(order))).thenReturn(order);
         ExecutionStatus statusAfterSecondOrder = orderBookService.processOrder(OrderDTOMapper.toDto(order));
         assertEquals(expectedStatus, statusAfterSecondOrder);
     }

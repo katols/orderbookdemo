@@ -1,7 +1,7 @@
 package com.example.demo;
 
 import com.example.demo.model.ExecutionStatus;
-import com.example.model.LimitOrder;
+import com.example.model.Order;
 import com.example.model.OrderDTOMapper;
 
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public class OrderConsumer {
     private List<Long> timeRecordsProducerSide = new ArrayList<>();
     private static int consumedMessages = 0;
 
-    private LinkedBlockingQueue<LimitOrder> orderQueue;
+    private LinkedBlockingQueue<Order> orderQueue;
     private OrderBookService orderBookService;
     private AtomicBoolean running = new AtomicBoolean(false);
     private int timeout = 5000; //Default, ms
@@ -30,7 +30,7 @@ public class OrderConsumer {
         orderQueue = new LinkedBlockingQueue(MAX_CAPACITY);
     }
 
-    public void acceptOrder(LimitOrder order) {
+    public void acceptOrder(Order order) {
         try {
             long acceptTimePre = System.nanoTime();
             this.orderQueue.put(order);
@@ -55,7 +55,7 @@ public class OrderConsumer {
     public void run() {
         while (running.get()) {
             try {
-                LimitOrder order = orderQueue.poll(timeout, TimeUnit.MILLISECONDS);
+                Order order = orderQueue.poll(timeout, TimeUnit.MILLISECONDS);
                 if (order == null) {
                     break;
                 }
@@ -80,7 +80,7 @@ public class OrderConsumer {
         this.running.set(false);
     }
 
-    private ExecutionStatus processOrder(LimitOrder order) {
+    private ExecutionStatus processOrder(Order order) {
         long timestampPre = System.nanoTime();
         ExecutionStatus status = orderBookService.processOrder(OrderDTOMapper.toDto(order));
         long timestampPost = System.nanoTime();

@@ -13,10 +13,10 @@ import java.util.stream.Collectors;
 @Service
 public class OrderBookService {
     private Map<String, OrderBook> orderBooks = new HashMap<>();
-    private LimitOrderRepository limitOrderRepository;
+    private OrderRepository orderRepository;
 
-    public OrderBookService(LimitOrderRepository orderRepository) {
-        this.limitOrderRepository = orderRepository;
+    public OrderBookService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
     }
 
     public void registerOrderBook(OrderBook orderBook) {
@@ -28,7 +28,7 @@ public class OrderBookService {
         if (orderBook == null) {
             return ExecutionStatus.NOT_MATCHED;
         }
-        LimitOrder order = limitOrderRepository.save(OrderDTOMapper.fromDto(createOrder));
+        Order order = orderRepository.save(OrderDTOMapper.fromDto(createOrder));
 
         if (order.getQuantity().signum() == -1) {
             throw new IllegalArgumentException("Order must have a positive quantity.");
@@ -57,32 +57,32 @@ public class OrderBookService {
     }
 
     public List<LimitOrderDTO> getOrders(String ticker) {
-        List<LimitOrder> searchResult = limitOrderRepository.search(ticker);
+        List<Order> searchResult = orderRepository.search(ticker);
         if (searchResult != null && !searchResult.isEmpty()) { //TODO: can we use Optional here instead?
-            return limitOrderRepository.search(ticker).stream().map(t -> OrderDTOMapper.toDto(t)).collect(Collectors.toList());
+            return orderRepository.search(ticker).stream().map(t -> OrderDTOMapper.toDto(t)).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
 //TODO: Fugly casting?
     public Optional<LimitOrderDTO> deleteOrder(Long id) {
         Optional<LimitOrderDTO> searchResult = null;
-        Optional<IOrder> existingOrder = limitOrderRepository.findById(id);
-        if(existingOrder.isPresent() && existingOrder.get() instanceof LimitOrder){
+        Optional<Order> existingOrder = orderRepository.findById(id);
+        if(existingOrder.isPresent() && existingOrder.get() instanceof Order){
             orderBooks.get(existingOrder.get().getTicker()).cancelOrder(existingOrder.get());
-            limitOrderRepository.delete(existingOrder.get());
-            searchResult = Optional.ofNullable(OrderDTOMapper.toDto((LimitOrder) existingOrder.get()));
+            orderRepository.delete(existingOrder.get());
+            searchResult = Optional.ofNullable(OrderDTOMapper.toDto((Order) existingOrder.get()));
         }
         return searchResult;
     }
 
     public Optional<LimitOrderDTO> cancelOrder(Long id) {
         Optional<LimitOrderDTO> byId = null;
-        Optional<IOrder> searchResult = limitOrderRepository.findById(id);
-        if (searchResult.isPresent() && searchResult.get() instanceof LimitOrder) {
+        Optional<Order> searchResult = orderRepository.findById(id);
+        if (searchResult.isPresent() && searchResult.get() instanceof Order) {
             searchResult.get().setOrderStatus(OrderStatus.CANCELLED);
             orderBooks.get(searchResult.get().getTicker()).cancelOrder(searchResult.get());
-            limitOrderRepository.save(searchResult.get());
-            byId = Optional.ofNullable(OrderDTOMapper.toDto((LimitOrder) searchResult.get()));
+            orderRepository.save(searchResult.get());
+            byId = Optional.ofNullable(OrderDTOMapper.toDto((Order) searchResult.get()));
         }
         return byId;
     }
@@ -90,17 +90,17 @@ public class OrderBookService {
     public Optional<LimitOrderDTO> findOrderById(Long id) {
 
         Optional<LimitOrderDTO> byId = null;
-        Optional<IOrder> searchResult = limitOrderRepository.findById(id);
-        if(searchResult.isPresent() && searchResult.get() instanceof LimitOrder){
-            byId = Optional.ofNullable(OrderDTOMapper.toDto((LimitOrder) searchResult.get()));
+        Optional<Order> searchResult = orderRepository.findById(id);
+        if(searchResult.isPresent() && searchResult.get() instanceof Order){
+            byId = Optional.ofNullable(OrderDTOMapper.toDto((Order) searchResult.get()));
         }
         return byId;
     }
 
     public OrderStatisticsDTO getOrderSummaryByDate(String ticker, LocalDate date) {
 
-        List<LimitOrder> matchingOrders = null;
-        List<LimitOrder> searchResult = limitOrderRepository.search(ticker);
+        List<Order> matchingOrders = null;
+        List<Order> searchResult = orderRepository.search(ticker);
         if (searchResult != null && !searchResult.isEmpty()) {
             matchingOrders = searchResult.stream().filter(t -> dateEquals(t.getCreationTime(), date)).collect(Collectors.toList());
         }
@@ -113,16 +113,15 @@ public class OrderBookService {
     private void persistChangedOrders(Map<ExecutionAction, List<IOrder>> changedOrders, OrderBook orderBook) {
         changedOrders.entrySet().stream().forEach(orderList ->
                 orderList.getValue().stream().forEach(order -> {
-                            Optional<IOrder> byId = limitOrderRepository.findById(order.getId());
+                            Optional<Order> byId = orderRepository.findById(order.getId());
                             if (byId.isPresent()) {
                                 //TODO: log this
                                 System.out.println("updating order with id " + order);
                             }
-                            IOrder newOrder = limitOrderRepository.save(order);
+                            Order newOrder = orderRepository.save((Order) order);
                             if (orderList.getKey() == ExecutionAction.ADD) {
                                 orderBook.addOrder(newOrder);
                             }
-                            //);
                         }
                 ));
     }
@@ -143,7 +142,7 @@ public class OrderBookService {
         }
     }
 
-    private OrderStatisticsDTO calculateOrderStatistics(List<LimitOrder> matchingOrders) {
+    private OrderStatisticsDTO calculateOrderStatistics(List<Order> matchingOrders) {
         return new OrderStatisticsDTO();
     }
 

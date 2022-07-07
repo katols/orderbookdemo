@@ -54,9 +54,9 @@ public class OrderBook {
 
     public Map<ExecutionAction, List<IOrder>> executeOrder(IOrder order) {
         if (order.getSide().isBuy()) {
-            return matchAgainstExistingOrders(order, sellOrders);
+            return order.matchAgainstExistingOrders(order, sellOrders);
         } else {
-            return matchAgainstExistingOrders(order, buyOrders);
+            return order.matchAgainstExistingOrders(order, buyOrders);
         }
     }
 
@@ -100,7 +100,7 @@ public class OrderBook {
     }
 
 
-    private Map<ExecutionAction, List<IOrder>> matchAgainstExistingOrders(IOrder order, TreeMap<PriceInformation, LinkedList<IOrder>> orders) {
+/*    private Map<ExecutionAction, List<IOrder>> matchAgainstExistingOrders(IOrder order, TreeMap<PriceInformation, LinkedList<IOrder>> orders) {
         Map<ExecutionAction, List<IOrder>> changedOrders = initializeChangedOrders();
         BigDecimal qtyAddedOrRemoved = order.getQuantity();
         Iterator<Map.Entry<PriceInformation, LinkedList<IOrder>>> iterator = orders.entrySet().iterator();
@@ -129,29 +129,29 @@ public class OrderBook {
                   order.create(order.getPriceInformation(), qtyAddedOrRemoved, order.getSide(), order.getTicker()));
         }
         return changedOrders;
-    }
+    }*/
 
-    private Map<ExecutionAction, List<IOrder>> initializeChangedOrders() {
+   /* private Map<ExecutionAction, List<IOrder>> initializeChangedOrders() {
         Map<ExecutionAction, List<IOrder>> changedOrders = new HashMap<>();
         changedOrders.put(ExecutionAction.ADD, new ArrayList<>());
         changedOrders.put(ExecutionAction.CLOSE, new ArrayList<>());
         changedOrders.put(ExecutionAction.UPDATE, new ArrayList<>());
         return changedOrders;
-    }
+    }*/
 
-    private void updateChangedOrders(Map<ExecutionAction, List<IOrder>> changedOrders, ExecutionAction action, IOrder next) {
+ /*   private void updateChangedOrders(Map<ExecutionAction, List<IOrder>> changedOrders, ExecutionAction action, IOrder next) {
         List<IOrder> orders = changedOrders.get(action);
         if (orders == null) {
             orders = new ArrayList<>();
             changedOrders.put(action, orders);
         }
         orders.add(next);
-    }
+    }*/
 
-    private void closeOrder(Iterator<IOrder> iterator, IOrder nextOrder) {
+    /*private void closeOrder(Iterator<IOrder> iterator, IOrder nextOrder) {
         iterator.remove();
         nextOrder.setOrderStatus(OrderStatus.CLOSED);
-    }
+    }*/
 
     private BigDecimal getTotalQuantityForPriceLevel(TreeMap<PriceInformation, LinkedList<IOrder>> orders, PriceInformation priceInformation) {
         LinkedList<IOrder> orderQueue = orders.get(priceInformation);

@@ -9,16 +9,16 @@ public class OrderDTOMapper {
         return new PriceInformationDTO(priceInformation.getPrice(), priceInformation.getCurrency());
     }
 
-    public static LimitOrderDTO toDto(LimitOrder limitOrder) {
+    public static LimitOrderDTO toDto(Order order) {
         return LimitOrderDTO.builder().
-                id(limitOrder.getId()).
-                priceInformation(toDto(limitOrder.getPriceInformation())).
-                quantity(limitOrder.getQuantity()).
-                side(limitOrder.getSide()).
-                ticker(limitOrder.getTicker()).
-                creationTime(toLocalDate(limitOrder.getCreationTime())).
-                orderStatus(limitOrder.getOrderStatus()).
-                volume(limitOrder.getVolume()).
+                id(order.getId()).
+                priceInformation(toDto(order.getPriceInformation())).
+                quantity(order.getQuantity()).
+                side(order.getSide()).
+                ticker(order.getTicker()).
+                creationTime(toLocalDate(order.getCreationTime())).
+                orderStatus(order.getOrderStatus()).
+                volume(order.getVolume()).
                 build();
     }
 
@@ -27,14 +27,13 @@ public class OrderDTOMapper {
     }
 
     public static LimitOrder fromDto(LimitOrderDTO limitOrderDTO) {
-        return LimitOrder.builder().
-                priceInformation(fromDto(limitOrderDTO.getPriceInformation())).
-                quantity(limitOrderDTO.getQuantity()).
-                side(limitOrderDTO.getSide()).
-                ticker(limitOrderDTO.getTicker()).
-                orderStatus(limitOrderDTO.getOrderStatus()).
-                volume(limitOrderDTO.getVolume()).
-                build();
+
+        return new LimitOrder(
+                fromDto(limitOrderDTO.getPriceInformation()),
+                limitOrderDTO.getQuantity(),
+                limitOrderDTO.getSide(),
+                limitOrderDTO.getTicker(),
+                limitOrderDTO.getOrderStatus());
     }
 
     private static LocalDate toLocalDate(Timestamp creationTime) {
