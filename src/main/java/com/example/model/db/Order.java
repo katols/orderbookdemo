@@ -39,12 +39,11 @@ public abstract class Order implements IOrder {
     private Timestamp creationTime;
     private OrderStatus orderStatus = OrderStatus.OPEN;
 
-    public Order(PriceInformation priceInformation, BigDecimal quantity, OrderSide orderSide, String ticker, OrderStatus orderStatus) {
+    public Order(PriceInformation priceInformation, BigDecimal quantity, OrderSide orderSide, String ticker) {
         this.priceInformation = priceInformation;
         this.quantity = quantity;
         this.side = orderSide;
         this.ticker = ticker;
-        this.orderStatus = OrderStatus.OPEN;
     }
 
     @Override
@@ -60,19 +59,13 @@ public abstract class Order implements IOrder {
         return this.orderStatus;
     }
 
-    ;
-
     @Override
     public PriceInformation getPriceInformation() {
         return this.priceInformation;
     }
 
     void updateChangedOrders(Map<ExecutionAction, List<IOrder>> changedOrders, ExecutionAction action, IOrder order) {
-        List<IOrder> orders = changedOrders.get(action);
-        if (orders == null) {
-            orders = new ArrayList<>();
-            changedOrders.put(action, orders);
-        }
+        List<IOrder> orders = changedOrders.computeIfAbsent(action, k -> new ArrayList<>());
         switch (action) {
             case CLOSE:
                 order.setOrderStatus(OrderStatus.CLOSED);

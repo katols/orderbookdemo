@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableJpaRepositories("com.example.*")
 @EntityScan("com.example.model")
 public class OrderbookApplication {
-    private OrderBookService orderBookService;
 
     public static void main(String[] args) {
         SpringApplication.run(OrderbookApplication.class, args);
@@ -18,7 +17,6 @@ public class OrderbookApplication {
     }
 
     public OrderbookApplication(OrderBookService orderBookService) {
-        this.orderBookService = orderBookService;
         orderBookService.registerOrderBook(new OrderBook("AAPL"));
         orderBookService.registerOrderBook(new OrderBook("SAVE"));
         orderBookService.registerOrderBook(new OrderBook("TSLA"));

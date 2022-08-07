@@ -1,12 +1,14 @@
 package com.example.demo;
 
-import com.example.model.domain.*;
 import com.example.model.db.Order;
 import com.example.model.db.PriceInformation;
+import com.example.model.domain.Currency;
+import com.example.model.domain.OrderBook;
+import com.example.model.domain.OrderSide;
+import com.example.model.domain.OrderStatus;
 import com.example.model.dto.LimitOrderDTO;
 import com.example.model.dto.OrderDTOMapper;
 import com.example.model.dto.OrderSummaryDTO;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -20,14 +22,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 public class OrderBookServiceTest {
     OrderBookService orderBookService;
     @MockBean
     OrderRepository orderRepository;
 
     private static final String TICKER_AAPL = "AAPL";
-    private static final String TICKER_SAVE = "SAVE";
 
     @BeforeEach
     public void init() {
@@ -38,7 +39,7 @@ public class OrderBookServiceTest {
     //TODO: Test that get quantity returns an aggregated value, for total and each side
 
     @Test
-    public void testFullMatchWithTwoEqualOrders() {
+    public void testFullMatchWithTwoEqualOrders() throws OrderbookException {
         Order order = TestUtil.createLimitOrder(100.0, 10.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(order, OrderStatus.OPEN);
 
@@ -56,7 +57,7 @@ public class OrderBookServiceTest {
     }
 
     @Test
-    public void testFullMatchWithTwoBuyOrdersEqualToOneSellOrder() {
+    public void testFullMatchWithTwoBuyOrdersEqualToOneSellOrder() throws OrderbookException {
         Order buyOrder1 = TestUtil.createLimitOrder(100.0, 5.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder1, OrderStatus.OPEN);
 
@@ -69,7 +70,7 @@ public class OrderBookServiceTest {
     }
 
     @Test
-    public void testFullMatchWithSandwich() {
+    public void testFullMatchWithSandwich() throws OrderbookException {
         Order expectedOrder = TestUtil.createLimitOrder(100.0, 5.0, OrderSide.SELL, TICKER_AAPL);
 
         Order buyOrder1 = TestUtil.createLimitOrder(100.0, 5.0, OrderSide.BUY, TICKER_AAPL);
@@ -85,7 +86,7 @@ public class OrderBookServiceTest {
     }
 
     @Test
-    public void testPartialMatchOnDifferentPriceLevels() {
+    public void testPartialMatchOnDifferentPriceLevels() throws OrderbookException {
         Order expectedBuyOrder = TestUtil.createLimitOrder(110.0, 30.0, OrderSide.BUY, TICKER_AAPL);
 
         Order order1 = TestUtil.createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
@@ -100,13 +101,13 @@ public class OrderBookServiceTest {
         Order order4 = TestUtil.createLimitOrder(110.0, 50.0, OrderSide.BUY, TICKER_AAPL);
         when(orderRepository.save(eq(expectedBuyOrder))).thenReturn(expectedBuyOrder);
         assertOrderStatus(order4, OrderStatus.PARTIALLY_MATCHED);
-        assertEquals(new BigDecimal(30.0).doubleValue(), getTotalQuantityForPriceLevel(110).doubleValue());
-        assertEquals(new BigDecimal(10.0).doubleValue(), getTotalQuantityForPriceLevel(120).doubleValue());
+        assertEquals(new BigDecimal("30.0").doubleValue(), getTotalQuantityForPriceLevel(110).doubleValue());
+        assertEquals(new BigDecimal("10.0").doubleValue(), getTotalQuantityForPriceLevel(120).doubleValue());
 
     }
 
     @Test
-    public void bestDealAtBuyTest() throws JsonProcessingException {
+    public void bestDealAtBuyTest() throws OrderbookException {
         Order sellOrder1 = TestUtil.createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(sellOrder1, OrderStatus.OPEN);
 
@@ -125,7 +126,7 @@ public class OrderBookServiceTest {
     }
 
     @Test
-    public void bestDealAtSellTest() {
+    public void bestDealAtSellTest() throws OrderbookException {
         Order buyOrder1 = TestUtil.createLimitOrder(100.0, 10.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder1, OrderStatus.OPEN);
 
@@ -138,14 +139,14 @@ public class OrderBookServiceTest {
         Order sellOrder = TestUtil.createLimitOrder(100.0, 16.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(sellOrder, OrderStatus.CLOSED);
 
-        assertEquals(new BigDecimal(10.0).doubleValue(), getTotalQuantityForPriceLevel(100).doubleValue());
-        assertEquals(new BigDecimal(4.0).doubleValue(), getTotalQuantityForPriceLevel(110).doubleValue());
+        assertEquals(new BigDecimal("10.0").doubleValue(), getTotalQuantityForPriceLevel(100).doubleValue());
+        assertEquals(new BigDecimal("4.0").doubleValue(), getTotalQuantityForPriceLevel(110).doubleValue());
         assertEquals(new BigDecimal(0).doubleValue(), getTotalQuantityForPriceLevel(120).doubleValue());
     }
 
 
     @Test
-    public void correctStatusTest() {
+    public void correctStatusTest() throws OrderbookException {
         Order expectedBuyOrder = TestUtil.createLimitOrder(100.0, 4.0, OrderSide.BUY, TICKER_AAPL);
         Order sellOrder = TestUtil.createLimitOrder(100.0, 4.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(sellOrder, OrderStatus.OPEN);
@@ -165,15 +166,10 @@ public class OrderBookServiceTest {
         assertEquals(new BigDecimal(160), orderSummaryByDate.getAverage());
     }
 
-    private void assertOrderStatus(Order order, OrderStatus expectedStatus) {
+    private void assertOrderStatus(Order order, OrderStatus expectedStatus) throws OrderbookException {
         when(orderRepository.save(eq(order))).thenReturn(order);
-        LimitOrderDTO statusAfterSecondOrder = null;
-        try {
-            statusAfterSecondOrder = orderBookService.processOrder(OrderDTOMapper.toDto(order));
-        } catch (OrderbookException e) {
-
-
-        }
+        LimitOrderDTO statusAfterSecondOrder;
+        statusAfterSecondOrder = orderBookService.processOrder(OrderDTOMapper.toDto(order));
         assertEquals(expectedStatus, statusAfterSecondOrder.getOrderStatus());
     }
 

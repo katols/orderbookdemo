@@ -51,7 +51,7 @@ public class PriceInformation implements Comparable<PriceInformation> {
     public int hashCode() {
         int prime = 31;
         int result = 1;
-        result = prime * result + (int) price.intValue();
+        result = prime * result + price.intValue();
         result = prime * result + currency.ordinal();
         return result;
     }

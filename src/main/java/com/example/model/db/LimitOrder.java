@@ -1,9 +1,8 @@
 package com.example.model.db;
 
 import com.example.model.domain.ExecutionAction;
-import com.example.model.interfaces.IOrder;
 import com.example.model.domain.OrderSide;
-import com.example.model.domain.OrderStatus;
+import com.example.model.interfaces.IOrder;
 import lombok.Data;
 
 import javax.persistence.DiscriminatorValue;
@@ -16,8 +15,8 @@ import java.util.*;
 @DiscriminatorValue("limit")
 public class LimitOrder extends Order {
 
-    public LimitOrder(PriceInformation priceInformation, BigDecimal quantity, OrderSide orderSide, String ticker, OrderStatus orderStatus) {
-        super(priceInformation, quantity, orderSide, ticker, orderStatus);
+    public LimitOrder(PriceInformation priceInformation, BigDecimal quantity, OrderSide orderSide, String ticker) {
+        super(priceInformation, quantity, orderSide, ticker);
     }
 
     public LimitOrder() {

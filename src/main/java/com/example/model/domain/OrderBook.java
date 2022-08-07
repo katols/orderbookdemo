@@ -24,27 +24,19 @@ public class OrderBook {
 
     public void addOrder(IOrder order) {
         if (order.getSide().isBuy()) {
-            LinkedList<IOrder> buyOrderQueue = buyOrders.get(order.getPriceInformation());
-            if (buyOrderQueue == null) {
-                buyOrderQueue = new LinkedList<>();
-                buyOrders.put(order.getPriceInformation(), buyOrderQueue);
-            }
+            LinkedList<IOrder> buyOrderQueue = buyOrders.computeIfAbsent(order.getPriceInformation(), k -> new LinkedList<>());
             buyOrderQueue.push(order);
         } else {
-            LinkedList<IOrder> sellOrderQueue = sellOrders.get(order.getPriceInformation());
-            if (sellOrderQueue == null) {
-                sellOrderQueue = new LinkedList<>();
-                sellOrders.put(order.getPriceInformation(), sellOrderQueue);
-            }
+            LinkedList<IOrder> sellOrderQueue = sellOrders.computeIfAbsent(order.getPriceInformation(), k -> new LinkedList<>());
             sellOrderQueue.push(order);
         }
     }
 
-    public Optional<IOrder> cancelOrder(IOrder order) {
+    public void cancelOrder(IOrder order) {
         if (order.getSide().isBuy()) {
-            return remove(order, buyOrders);
+            remove(order, buyOrders);
         } else {
-            return remove(order, sellOrders);
+            remove(order, sellOrders);
         }
     }
 
@@ -69,22 +61,18 @@ public class OrderBook {
         return side.isBuy() ? sellOrders.isEmpty() : buyOrders.isEmpty();
     }
 
-    private Optional<IOrder> remove(IOrder order, TreeMap<PriceInformation, LinkedList<IOrder>> orderTreeMap) {
-        IOrder removedOrder = null;
-        Iterator<Map.Entry<PriceInformation, LinkedList<IOrder>>> iterator = orderTreeMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            LinkedList<IOrder> nextOrderQueue = iterator.next().getValue();
+    private void remove(IOrder order, TreeMap<PriceInformation, LinkedList<IOrder>> orderTreeMap) {
+        for (Map.Entry<PriceInformation, LinkedList<IOrder>> priceInformationLinkedListEntry : orderTreeMap.entrySet()) {
+            LinkedList<IOrder> nextOrderQueue = priceInformationLinkedListEntry.getValue();
             Iterator<IOrder> queueIterator = nextOrderQueue.iterator();
             while (queueIterator.hasNext()) {
                 IOrder next = queueIterator.next();
                 if (next.equals(order)) {
                     queueIterator.remove();
-                    removedOrder = next;
                     break;
                 }
             }
         }
-        return Optional.ofNullable(removedOrder);
     }
 
     private BigDecimal getTotalQuantityForPriceLevel(TreeMap<PriceInformation, LinkedList<IOrder>> orders, PriceInformation priceInformation) {
@@ -92,7 +80,7 @@ public class OrderBook {
         if (orderQueue == null || orderQueue.isEmpty()) {
             return BigDecimal.ZERO;
         }
-        return orderQueue.stream().map(t -> t.getQuantity()).collect(Collectors.toList()).
+        return orderQueue.stream().map(IOrder::getQuantity).collect(Collectors.toList()).
                 stream().reduce(BigDecimal.ZERO, BigDecimal::add);
 
     }

@@ -5,7 +5,6 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 
-//TODO: ensure immutability?
 @Data
 @AllArgsConstructor
 public class OrderSummaryDTO {

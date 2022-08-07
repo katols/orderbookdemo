@@ -36,8 +36,8 @@ public class OrderDTOMapper {
                 fromDto(limitOrderDTO.getPriceInformation()),
                 limitOrderDTO.getQuantity(),
                 limitOrderDTO.getSide(),
-                limitOrderDTO.getTicker(),
-                limitOrderDTO.getOrderStatus());
+                limitOrderDTO.getTicker()
+        );
     }
 
     private static LocalDate toLocalDate(Timestamp creationTime) {

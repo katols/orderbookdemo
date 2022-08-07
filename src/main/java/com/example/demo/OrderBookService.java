@@ -10,6 +10,7 @@ import com.example.model.interfaces.IOrder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.*;
@@ -17,8 +18,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class OrderBookService {
-    private Map<String, OrderBook> orderBooks = new HashMap<>();
-    private OrderRepository orderRepository;
+    private final Map<String, OrderBook> orderBooks = new HashMap<>();
+    private final OrderRepository orderRepository;
 
     public OrderBookService(OrderRepository orderRepository) {
         this.orderRepository = orderRepository;
@@ -59,7 +60,7 @@ public class OrderBookService {
     public List<LimitOrderDTO> getOrders(String ticker) {
         List<Order> searchResult = orderRepository.search(ticker);
         if (searchResult != null && !searchResult.isEmpty()) {
-            return orderRepository.search(ticker).stream().map(t -> OrderDTOMapper.toDto(t)).collect(Collectors.toList());
+            return orderRepository.search(ticker).stream().map(OrderDTOMapper::toDto).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
@@ -79,7 +80,7 @@ public class OrderBookService {
     }
 
     public Optional<LimitOrderDTO> findOrderById(Long id) {
-        Optional<LimitOrderDTO> byId = null;
+        Optional<LimitOrderDTO> byId = Optional.empty();
         Optional<Order> searchResult = orderRepository.findById(id);
         if (searchResult.isPresent()) {
             byId = Optional.ofNullable(OrderDTOMapper.toDto(searchResult.get()));
@@ -104,25 +105,24 @@ public class OrderBookService {
     }
 
     private void persistChangedOrders(Map<ExecutionAction, List<IOrder>> changedOrders, OrderBook orderBook) {
-        changedOrders.entrySet().stream().forEach(orderList ->
-                orderList.getValue().stream().forEach(order -> {
-                            Order newOrder = orderRepository.save((Order) order);
-                            if (orderList.getKey() == ExecutionAction.ADD || orderList.getKey() == ExecutionAction.PARTIAL_ADD) {
-                                orderBook.addOrder(newOrder);
-                            }
-                        }
-                ));
+        changedOrders.forEach((key, value) -> value.forEach(order -> {
+                    Order newOrder = orderRepository.save((Order) order);
+                    if (key == ExecutionAction.ADD || key == ExecutionAction.PARTIAL_ADD) {
+                        orderBook.addOrder(newOrder);
+                    }
+                }
+        ));
     }
 
     //Calculate min, max, average and qty of orders for that side for a given ticker and date
     private OrderSummaryDTO calculateOrderStatistics(List<Order> matchingOrders) {
         BigDecimal minPrice = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice()).min(Comparator.naturalOrder()).orElse(BigDecimal.ZERO);
         BigDecimal maxPrice = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice()).max(Comparator.naturalOrder()).orElse(BigDecimal.ZERO);
-        List<BigDecimal> weightedQuantities = matchingOrders.stream().map(t -> t.getQuantity()).collect(Collectors.toList());
+        List<BigDecimal> weightedQuantities = matchingOrders.stream().map(Order::getQuantity).collect(Collectors.toList());
         List<BigDecimal> weightedPrices = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice().multiply(t.getQuantity())).collect(Collectors.toList());
         BigDecimal priceSum = weightedPrices.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal qtySum = weightedQuantities.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal averagePrice = priceSum.divide(qtySum);
+        BigDecimal averagePrice = priceSum.divide(qtySum, RoundingMode.CEILING);
         int noOfOrders = matchingOrders.size();
 
 
