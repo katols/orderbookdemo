@@ -5,7 +5,7 @@
 This application runs on: 
 
 * Spring Boot 2.7.1
-* Java JDK 12.0.1
+* Java JDK 11
 * Docker 20.10.17
 * MySQL 8.0.29
 
