@@ -1,3 +1,7 @@
+# Orderbook Service
+
+## General
+
 This application runs on: 
 
 * Spring Boot 2.7.1
@@ -5,7 +9,7 @@ This application runs on:
 * Docker 20.10.17
 * MySQL 8.0.29
 
-
+## Setup
 
 This application can be run both with docker only and by starting the main class of the Spring Boot application.
 In the latter case MySQL needs to be setup separately (more details [here](https://hub.docker.com/_/mysql) ) 
@@ -22,10 +26,26 @@ in the root directory of the downloaded code:
 
 `docker-compose up`
 
-The web server can be accessed in 2 different ways.
+The web server and its REST api can be accessed in 2 different ways.
 When starting with docker: 
 http://localhost:6868/swagger-ui/index.html
 
 When starting locally via IDE: 
 http://localhost:8081/swagger-ui/index.html
 
+## About
+This application provides a basic REST API and the functionality of a simple matching engine. 
+The matching is automatic, which means that when an order is created successfully, 
+it is instantly executed against any present orders already existing on an orderbook. 
+An orderbook is identified by a ticker with a character length of maximum 5. 
+Currently the application supports 4 different orderbooks: AAPL, SAVE, GME and TSLA.
+All successfully created orders are saved in a single table in a MySQL database and an order summary
+(including max/min/average price) can be retrieved for each ticker, date and side of orderbook. An order can also be retrieved using the 
+id created by the application. Orders can be cancelled but will never be deleted by the application. 
+
+## Some Important Limitations
+* Orderbooks cannot be added or deleted in runtime. It is not possible to enter orders for other orderbooks 
+than the supported ones. 
+* The application needs to be restarted every day to function correctly. Only today's orders will be traded.
+* Restarting in the middle of the trading day is not supported (todays orders will need manual removal).
+* The application only handles Limit Orders. Future support for Market orders may be considered. 

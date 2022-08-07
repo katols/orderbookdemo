@@ -20,6 +20,7 @@ public class OrderbookApplication {
         orderBookService.registerOrderBook(new OrderBook("AAPL"));
         orderBookService.registerOrderBook(new OrderBook("SAVE"));
         orderBookService.registerOrderBook(new OrderBook("TSLA"));
+        orderBookService.registerOrderBook(new OrderBook("GME"));
     }
 
 }
