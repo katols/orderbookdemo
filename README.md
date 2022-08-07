@@ -47,5 +47,5 @@ id created by the application. Orders can be cancelled but will never be deleted
 * Orderbooks cannot be added or deleted in runtime. It is not possible to enter orders for other orderbooks 
 than the supported ones. 
 * The application needs to be restarted every day to function correctly. Only today's orders will be traded.
-* Restarting in the middle of the trading day is not supported (todays orders will need manual removal).
+* Restarting in the middle of the trading day is not supported (todays orders will need manual removal from the db).
 * The application only handles Limit Orders. Future support for Market orders may be considered. 
