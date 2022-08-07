@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 //TODO: ensure immutability?
 @Data
 @AllArgsConstructor
-public class OrderStatisticsDTO {
+public class OrderSummaryDTO {
     private BigDecimal min;
     private BigDecimal max;
     private BigDecimal average;

@@ -3,7 +3,7 @@ package com.example.demo;
 
 import com.example.model.domain.OrderSide;
 import com.example.model.dto.LimitOrderDTO;
-import com.example.model.dto.OrderStatisticsDTO;
+import com.example.model.dto.OrderSummaryDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -72,13 +72,13 @@ public class OrderBookRestController {
     }
 
     @GetMapping("/ordersummary")
-    public ResponseEntity<OrderStatisticsDTO> getOrderSummaryForOrderBookByDate(@RequestParam("ticker") final String ticker,
-                                                                                @RequestParam("date") final LocalDate date,
-                                                                                @RequestParam("side") final OrderSide side) {
+    public ResponseEntity<OrderSummaryDTO> getOrderSummaryForOrderBookByDate(@RequestParam("ticker") final String ticker,
+                                                                             @RequestParam("date") final LocalDate date,
+                                                                             @RequestParam("side") final OrderSide side) {
         if (ticker.length() > MAX_TICKER_LENGTH) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ticker length is maximum" + MAX_TICKER_LENGTH + "characters.");
         }
-        OrderStatisticsDTO orderStatisticsDto = orderBookService.getOrderSummaryByDate(ticker, date, side);
+        OrderSummaryDTO orderStatisticsDto = orderBookService.getOrderSummaryByDate(ticker, date, side);
         if (orderStatisticsDto == null) {
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }

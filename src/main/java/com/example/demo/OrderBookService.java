@@ -5,7 +5,7 @@ import com.example.model.db.Order;
 import com.example.model.db.PriceInformation;
 import com.example.model.dto.LimitOrderDTO;
 import com.example.model.dto.OrderDTOMapper;
-import com.example.model.dto.OrderStatisticsDTO;
+import com.example.model.dto.OrderSummaryDTO;
 import com.example.model.interfaces.IOrder;
 import org.springframework.stereotype.Service;
 
@@ -58,7 +58,7 @@ public class OrderBookService {
 
     public List<LimitOrderDTO> getOrders(String ticker) {
         List<Order> searchResult = orderRepository.search(ticker);
-        if (searchResult != null && !searchResult.isEmpty()) { //TODO: can we use Optional here instead?
+        if (searchResult != null && !searchResult.isEmpty()) {
             return orderRepository.search(ticker).stream().map(t -> OrderDTOMapper.toDto(t)).collect(Collectors.toList());
         }
         return Collections.emptyList();
@@ -87,10 +87,10 @@ public class OrderBookService {
         return byId;
     }
 
-    public OrderStatisticsDTO getOrderSummaryByDate(String ticker, LocalDate date, OrderSide side) {
+    public OrderSummaryDTO getOrderSummaryByDate(String ticker, LocalDate date, OrderSide side) {
 
         List<Order> matchingOrders;
-        OrderStatisticsDTO statistics = null;
+        OrderSummaryDTO statistics = null;
         List<Order> searchResult = orderRepository.search(ticker);
         if (searchResult != null && !searchResult.isEmpty()) {
             matchingOrders = searchResult.stream().
@@ -115,7 +115,7 @@ public class OrderBookService {
     }
 
     //Calculate min, max, average and qty of orders for that side for a given ticker and date
-    private OrderStatisticsDTO calculateOrderStatistics(List<Order> matchingOrders) {
+    private OrderSummaryDTO calculateOrderStatistics(List<Order> matchingOrders) {
         BigDecimal minPrice = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice()).min(Comparator.naturalOrder()).orElse(BigDecimal.ZERO);
         BigDecimal maxPrice = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice()).max(Comparator.naturalOrder()).orElse(BigDecimal.ZERO);
         List<BigDecimal> weightedQuantities = matchingOrders.stream().map(t -> t.getQuantity()).collect(Collectors.toList());
@@ -126,7 +126,7 @@ public class OrderBookService {
         int noOfOrders = matchingOrders.size();
 
 
-        return new OrderStatisticsDTO(minPrice, maxPrice, averagePrice, noOfOrders);
+        return new OrderSummaryDTO(minPrice, maxPrice, averagePrice, noOfOrders);
     }
 
     private boolean dateEquals(Timestamp t, LocalDate date) {

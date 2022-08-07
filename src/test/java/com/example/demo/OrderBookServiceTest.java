@@ -5,10 +5,8 @@ import com.example.model.db.Order;
 import com.example.model.db.PriceInformation;
 import com.example.model.dto.LimitOrderDTO;
 import com.example.model.dto.OrderDTOMapper;
-import com.example.model.dto.OrderStatisticsDTO;
+import com.example.model.dto.OrderSummaryDTO;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -163,7 +161,7 @@ public class OrderBookServiceTest {
         Order buyOrder2 = TestUtil.createLimitOrder(200.0, 20.0, OrderSide.BUY, TICKER_AAPL);
         Order buyOrder3 = TestUtil.createLimitOrder(300.0, 5.0, OrderSide.BUY, TICKER_AAPL);
         when(orderRepository.search(eq(TICKER_AAPL))).thenReturn(Arrays.asList(buyOrder1, buyOrder2, buyOrder3));
-        OrderStatisticsDTO orderSummaryByDate = orderBookService.getOrderSummaryByDate(TICKER_AAPL, LocalDate.now(), OrderSide.BUY);
+        OrderSummaryDTO orderSummaryByDate = orderBookService.getOrderSummaryByDate(TICKER_AAPL, LocalDate.now(), OrderSide.BUY);
         assertEquals(new BigDecimal(160), orderSummaryByDate.getAverage());
     }
 
