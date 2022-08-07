@@ -55,8 +55,14 @@ public class LimitOrder extends Order {
                 }
             }
             if (qtyAddedOrRemoved.signum() == 1) {
-                order.updateQuantity(qtyAddedOrRemoved.abs());
-                updateChangedOrders(changedOrders, ExecutionAction.ADD, order);
+                if (qtyAddedOrRemoved.compareTo(order.getQuantity()) == 0) {
+                    order.updateQuantity(qtyAddedOrRemoved.abs());
+                    updateChangedOrders(changedOrders, ExecutionAction.ADD, order);
+                } else {
+                    order.updateQuantity(qtyAddedOrRemoved.abs());
+                    updateChangedOrders(changedOrders, ExecutionAction.PARTIAL_ADD, order);
+
+                }
             }
             return changedOrders;
         }

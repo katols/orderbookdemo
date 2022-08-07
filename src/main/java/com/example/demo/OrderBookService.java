@@ -107,7 +107,7 @@ public class OrderBookService {
         changedOrders.entrySet().stream().forEach(orderList ->
                 orderList.getValue().stream().forEach(order -> {
                             Order newOrder = orderRepository.save((Order) order);
-                            if (orderList.getKey() == ExecutionAction.ADD) {
+                            if (orderList.getKey() == ExecutionAction.ADD || orderList.getKey() == ExecutionAction.PARTIAL_ADD) {
                                 orderBook.addOrder(newOrder);
                             }
                         }
