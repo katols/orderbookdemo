@@ -33,7 +33,7 @@ http://localhost:6868/swagger-ui/index.html
 When starting locally via IDE: 
 http://localhost:8081/swagger-ui/index.html
 
-## About
+## About the Application
 This application provides a basic REST API and the functionality of a simple matching engine. 
 The matching is automatic, which means that when an order is created successfully, 
 it is instantly executed against any present orders already existing on an orderbook. 
