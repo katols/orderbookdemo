@@ -17,12 +17,11 @@ public class OrderDTOMapper {
         return LimitOrderDTO.builder().
                 id(order.getId()).
                 priceInformation(toDto(order.getPriceInformation())).
-                quantity(order.getQuantity()).
+                volume(order.getVolume()).
                 side(order.getSide()).
                 ticker(order.getTicker()).
                 creationTime(toLocalDate(order.getCreationTime())).
                 orderStatus(order.getOrderStatus()).
-                volume(order.getVolume()).
                 build();
     }
 
@@ -34,7 +33,7 @@ public class OrderDTOMapper {
 
         return new LimitOrder(
                 fromDto(limitOrderDTO.getPriceInformation()),
-                limitOrderDTO.getQuantity(),
+                limitOrderDTO.getVolume(),
                 limitOrderDTO.getSide(),
                 limitOrderDTO.getTicker()
         );

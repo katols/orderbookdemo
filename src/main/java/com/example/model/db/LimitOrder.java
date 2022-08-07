@@ -15,8 +15,8 @@ import java.util.*;
 @DiscriminatorValue("limit")
 public class LimitOrder extends Order {
 
-    public LimitOrder(PriceInformation priceInformation, BigDecimal quantity, OrderSide orderSide, String ticker) {
-        super(priceInformation, quantity, orderSide, ticker);
+    public LimitOrder(PriceInformation priceInformation, BigDecimal volume, OrderSide orderSide, String ticker) {
+        super(priceInformation, volume, orderSide, ticker);
     }
 
     public LimitOrder() {
@@ -27,7 +27,7 @@ public class LimitOrder extends Order {
     public Map<ExecutionAction, List<IOrder>> matchAgainstExistingOrders(IOrder order, TreeMap<PriceInformation, LinkedList<IOrder>> orders) {
         {
             Map<ExecutionAction, List<IOrder>> changedOrders = initializeChangedOrders();
-            BigDecimal qtyAddedOrRemoved = order.getQuantity();
+            BigDecimal qtyAddedOrRemoved = order.getVolume();
             Iterator<Map.Entry<PriceInformation, LinkedList<IOrder>>> iterator = orders.entrySet().iterator();
             while (iterator.hasNext() && qtyAddedOrRemoved.signum() == 1) {
                 Map.Entry<PriceInformation, LinkedList<IOrder>> nextEntry = iterator.next();
@@ -36,7 +36,7 @@ public class LimitOrder extends Order {
                     Iterator<IOrder> queueIterator = nextOrderQueue.iterator();
                     while (queueIterator.hasNext() && qtyAddedOrRemoved.signum() == 1) {
                         IOrder next = queueIterator.next();
-                        BigDecimal remaining = next.getQuantity().subtract(qtyAddedOrRemoved);
+                        BigDecimal remaining = next.getVolume().subtract(qtyAddedOrRemoved);
                         if (remaining.signum() <= 0) {
                             closeOrder(queueIterator, next);
                             qtyAddedOrRemoved = remaining.abs();
@@ -45,7 +45,7 @@ public class LimitOrder extends Order {
                                 updateChangedOrders(changedOrders, ExecutionAction.CLOSE, order); //Tell the repository that order was updated to closed
                             }
                         } else {
-                            next.updateQuantity(remaining); //Om remaining >0 och side = other side = lägg ej till en ny order utan reducera den gamla. Inkommande order för liten.
+                            next.updateVolume(remaining); //Om remaining >0 och side = other side = lägg ej till en ny order utan reducera den gamla. Inkommande order för liten.
                             updateChangedOrders(changedOrders, ExecutionAction.UPDATE, next); //Tell the repository that order was updated to new qty
                             updateChangedOrders(changedOrders, ExecutionAction.CLOSE, order);
                             return changedOrders;
@@ -54,11 +54,11 @@ public class LimitOrder extends Order {
                 }
             }
             if (qtyAddedOrRemoved.signum() == 1) {
-                if (qtyAddedOrRemoved.compareTo(order.getQuantity()) == 0) {
-                    order.updateQuantity(qtyAddedOrRemoved.abs());
+                if (qtyAddedOrRemoved.compareTo(order.getVolume()) == 0) {
+                    order.updateVolume(qtyAddedOrRemoved.abs());
                     updateChangedOrders(changedOrders, ExecutionAction.ADD, order);
                 } else {
-                    order.updateQuantity(qtyAddedOrRemoved.abs());
+                    order.updateVolume(qtyAddedOrRemoved.abs());
                     updateChangedOrders(changedOrders, ExecutionAction.PARTIAL_ADD, order);
 
                 }
@@ -75,7 +75,7 @@ public class LimitOrder extends Order {
 
     @Override
     public String toString() {
-        return "Price: " + this.getPriceInformation() + " Quantity: " + this.getQuantity() + " Side: " + this.getSide();
+        return "Price: " + this.getPriceInformation() + " Volume: " + this.getVolume() + " Side: " + this.getSide();
     }
 
     @Override
@@ -83,7 +83,7 @@ public class LimitOrder extends Order {
         int prime = 31;
         int result = 1;
         result = prime * result + getPriceInformation().getPrice().intValue();
-        result = prime * result + getQuantity().intValue();
+        result = prime * result + getVolume().intValue();
         return result;
     }
 
@@ -97,7 +97,7 @@ public class LimitOrder extends Order {
         Order order = (Order) o;
 
         return order.getPriceInformation().equals(this.getPriceInformation()) &&
-                order.getQuantity().compareTo(this.getQuantity()) == 0
+                order.getVolume().compareTo(this.getVolume()) == 0
                 && order.getTicker().equals(this.getTicker())
                 && order.getSide() == this.getSide()
                 && order.getOrderStatus() == this.getOrderStatus();

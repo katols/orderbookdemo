@@ -36,7 +36,7 @@ public class OrderBookServiceTest {
         orderBookService.registerOrderBook(new OrderBook(TICKER_AAPL));
     }
 
-    //TODO: Test that get quantity returns an aggregated value, for total and each side
+    //TODO: Test that get volume returns an aggregated value, for total and each side
 
     @Test
     public void testFullMatchWithTwoEqualOrders() throws OrderbookException {
@@ -45,15 +45,15 @@ public class OrderBookServiceTest {
 
         Order order2 = TestUtil.createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(order2, OrderStatus.CLOSED);
-        assertEquals(new BigDecimal(0).doubleValue(), getTotalQuantityForPriceLevel(100.0).doubleValue());
+        assertEquals(new BigDecimal(0).doubleValue(), getTotalVolumeForPriceLevel(100.0).doubleValue());
 
     }
 
-    private BigDecimal getTotalQuantityForPriceLevel(double price) {
+    private BigDecimal getTotalVolumeForPriceLevel(double price) {
         PriceInformation priceInformation = new PriceInformation();
         priceInformation.setPrice(new BigDecimal(price));
         priceInformation.setCurrency(Currency.SEK);
-        return orderBookService.getTotalQuantityForPriceLevel(TICKER_AAPL, priceInformation);
+        return orderBookService.getTotalVolumeForPriceLevel(TICKER_AAPL, priceInformation);
     }
 
     @Test
@@ -66,7 +66,7 @@ public class OrderBookServiceTest {
 
         Order sellOrder = TestUtil.createLimitOrder(100.0, 10.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(sellOrder, OrderStatus.CLOSED);
-        assertEquals(new BigDecimal(0).doubleValue(), getTotalQuantityForPriceLevel(100.0).doubleValue());
+        assertEquals(new BigDecimal(0).doubleValue(), getTotalVolumeForPriceLevel(100.0).doubleValue());
     }
 
     @Test
@@ -82,7 +82,7 @@ public class OrderBookServiceTest {
 
         Order buyOrder2 = TestUtil.createLimitOrder(100.0, 5.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder2, OrderStatus.CLOSED);
-        assertEquals(new BigDecimal(0).doubleValue(), getTotalQuantityForPriceLevel(100.0).doubleValue());
+        assertEquals(new BigDecimal(0).doubleValue(), getTotalVolumeForPriceLevel(100.0).doubleValue());
     }
 
     @Test
@@ -101,8 +101,8 @@ public class OrderBookServiceTest {
         Order order4 = TestUtil.createLimitOrder(110.0, 50.0, OrderSide.BUY, TICKER_AAPL);
         when(orderRepository.save(eq(expectedBuyOrder))).thenReturn(expectedBuyOrder);
         assertOrderStatus(order4, OrderStatus.PARTIALLY_MATCHED);
-        assertEquals(new BigDecimal("30.0").doubleValue(), getTotalQuantityForPriceLevel(110).doubleValue());
-        assertEquals(new BigDecimal("10.0").doubleValue(), getTotalQuantityForPriceLevel(120).doubleValue());
+        assertEquals(new BigDecimal("30.0").doubleValue(), getTotalVolumeForPriceLevel(110).doubleValue());
+        assertEquals(new BigDecimal("10.0").doubleValue(), getTotalVolumeForPriceLevel(120).doubleValue());
 
     }
 
@@ -120,9 +120,9 @@ public class OrderBookServiceTest {
         Order buyOrder = TestUtil.createLimitOrder(130.0, 14.0, OrderSide.BUY, TICKER_AAPL);
         assertOrderStatus(buyOrder, OrderStatus.CLOSED);
 
-        assertEquals(new BigDecimal(0).doubleValue(), getTotalQuantityForPriceLevel(100).doubleValue());
-        assertEquals(new BigDecimal(1).doubleValue(), getTotalQuantityForPriceLevel(110).doubleValue());
-        assertEquals(new BigDecimal(15).doubleValue(), getTotalQuantityForPriceLevel(120).doubleValue());
+        assertEquals(new BigDecimal(0).doubleValue(), getTotalVolumeForPriceLevel(100).doubleValue());
+        assertEquals(new BigDecimal(1).doubleValue(), getTotalVolumeForPriceLevel(110).doubleValue());
+        assertEquals(new BigDecimal(15).doubleValue(), getTotalVolumeForPriceLevel(120).doubleValue());
     }
 
     @Test
@@ -139,9 +139,9 @@ public class OrderBookServiceTest {
         Order sellOrder = TestUtil.createLimitOrder(100.0, 16.0, OrderSide.SELL, TICKER_AAPL);
         assertOrderStatus(sellOrder, OrderStatus.CLOSED);
 
-        assertEquals(new BigDecimal("10.0").doubleValue(), getTotalQuantityForPriceLevel(100).doubleValue());
-        assertEquals(new BigDecimal("4.0").doubleValue(), getTotalQuantityForPriceLevel(110).doubleValue());
-        assertEquals(new BigDecimal(0).doubleValue(), getTotalQuantityForPriceLevel(120).doubleValue());
+        assertEquals(new BigDecimal("10.0").doubleValue(), getTotalVolumeForPriceLevel(100).doubleValue());
+        assertEquals(new BigDecimal("4.0").doubleValue(), getTotalVolumeForPriceLevel(110).doubleValue());
+        assertEquals(new BigDecimal(0).doubleValue(), getTotalVolumeForPriceLevel(120).doubleValue());
     }
 
 

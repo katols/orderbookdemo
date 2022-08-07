@@ -36,8 +36,8 @@ public class OrderBookService {
             throw new OrderbookException("Orderbook does not exist for this order.");
         }
 
-        if (createOrder.getQuantity().signum() == -1) {
-            throw new IllegalArgumentException("Order must have a positive quantity.");
+        if (createOrder.getVolume().signum() == -1) {
+            throw new IllegalArgumentException("Order must have a positive volume.");
         }
 
         Order order = orderRepository.save(OrderDTOMapper.fromDto(createOrder));
@@ -53,8 +53,8 @@ public class OrderBookService {
 
     }
 
-    public BigDecimal getTotalQuantityForPriceLevel(String ticker, PriceInformation orderValue) {
-        return this.orderBooks.get(ticker).getTotalQuantityForPriceLevel(orderValue);
+    public BigDecimal getTotalVolumeForPriceLevel(String ticker, PriceInformation orderValue) {
+        return this.orderBooks.get(ticker).getTotalVolumeForPriceLevel(orderValue);
     }
 
     public List<LimitOrderDTO> getOrders(String ticker) {
@@ -118,8 +118,8 @@ public class OrderBookService {
     private OrderSummaryDTO calculateOrderStatistics(List<Order> matchingOrders) {
         BigDecimal minPrice = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice()).min(Comparator.naturalOrder()).orElse(BigDecimal.ZERO);
         BigDecimal maxPrice = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice()).max(Comparator.naturalOrder()).orElse(BigDecimal.ZERO);
-        List<BigDecimal> weightedQuantities = matchingOrders.stream().map(Order::getQuantity).collect(Collectors.toList());
-        List<BigDecimal> weightedPrices = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice().multiply(t.getQuantity())).collect(Collectors.toList());
+        List<BigDecimal> weightedQuantities = matchingOrders.stream().map(Order::getVolume).collect(Collectors.toList());
+        List<BigDecimal> weightedPrices = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice().multiply(t.getVolume())).collect(Collectors.toList());
         BigDecimal priceSum = weightedPrices.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal qtySum = weightedQuantities.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal averagePrice = priceSum.divide(qtySum, RoundingMode.CEILING);

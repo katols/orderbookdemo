@@ -14,7 +14,7 @@ services:
   app:
     depends_on:
       - mysqldb
-    build: ~/Downloads/demo
+    build: .
     restart: on-failure
     env_file: ./.env
     ports:

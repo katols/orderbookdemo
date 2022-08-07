@@ -48,11 +48,11 @@ public class OrderBook {
         }
     }
 
-    public BigDecimal getTotalQuantityForPriceLevel(PriceInformation price) {
-        BigDecimal aggregatedBuyQuantity = getTotalQuantityForPriceLevel(buyOrders, price);
-        BigDecimal aggregatedSellQuantity = getTotalQuantityForPriceLevel(sellOrders, price);
-        BigDecimal buy = (buyOrders.get(price) != null) ? aggregatedBuyQuantity : BigDecimal.ZERO;
-        BigDecimal sell = (sellOrders.get(price) != null) ? aggregatedSellQuantity : BigDecimal.ZERO;
+    public BigDecimal getTotalVolumeForPriceLevel(PriceInformation price) {
+        BigDecimal aggregatedBuyVolume = getTotalVolumeForPriceLevel(buyOrders, price);
+        BigDecimal aggregatedSellVolume = getTotalVolumeForPriceLevel(sellOrders, price);
+        BigDecimal buy = (buyOrders.get(price) != null) ? aggregatedBuyVolume : BigDecimal.ZERO;
+        BigDecimal sell = (sellOrders.get(price) != null) ? aggregatedSellVolume : BigDecimal.ZERO;
 
         return buy.add(sell);
     }
@@ -75,12 +75,12 @@ public class OrderBook {
         }
     }
 
-    private BigDecimal getTotalQuantityForPriceLevel(TreeMap<PriceInformation, LinkedList<IOrder>> orders, PriceInformation priceInformation) {
+    private BigDecimal getTotalVolumeForPriceLevel(TreeMap<PriceInformation, LinkedList<IOrder>> orders, PriceInformation priceInformation) {
         LinkedList<IOrder> orderQueue = orders.get(priceInformation);
         if (orderQueue == null || orderQueue.isEmpty()) {
             return BigDecimal.ZERO;
         }
-        return orderQueue.stream().map(IOrder::getQuantity).collect(Collectors.toList()).
+        return orderQueue.stream().map(IOrder::getVolume).collect(Collectors.toList()).
                 stream().reduce(BigDecimal.ZERO, BigDecimal::add);
 
     }

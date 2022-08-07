@@ -47,14 +47,14 @@ public class OrderBookRestControllerTest {
                 .request("POST", "/api/orders/create");
 
         JsonPath jsonEvaluator = response.jsonPath();
-        assertThat(jsonEvaluator.get("quantity"), equalTo(30));
+        assertThat(jsonEvaluator.get("volume"), equalTo(30));
         String orderId = jsonEvaluator.get("id").toString();
 
 
         Response response1 = given().port(port).get("/api/orders/" + orderId);
         JsonPath jsonEvaluatorGetId = response1.jsonPath();
         assertThat(jsonEvaluatorGetId.get("id").toString(), equalTo(orderId));
-        assertThat(jsonEvaluatorGetId.get("quantity"), equalTo(30.0f));
+        assertThat(jsonEvaluatorGetId.get("volume"), equalTo(30.0f));
 
     }
 

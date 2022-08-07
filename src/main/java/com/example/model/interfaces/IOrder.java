@@ -19,9 +19,9 @@ public interface IOrder {
 
     OrderSide getSide();
 
-    BigDecimal getQuantity();
+    BigDecimal getVolume();
 
-    void updateQuantity(BigDecimal remaining);
+    void updateVolume(BigDecimal remaining);
 
     void setOrderStatus(OrderStatus closed);
 

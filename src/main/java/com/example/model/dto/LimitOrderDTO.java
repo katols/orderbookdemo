@@ -16,11 +16,10 @@ import java.time.LocalDate;
 public class LimitOrderDTO {
     private Long id;
     private PriceInformationDTO priceInformation;
-    private BigDecimal quantity;
+    private BigDecimal volume;
     private OrderSide side;
     private String ticker;
     private Currency currency;
     private LocalDate creationTime;
     private OrderStatus orderStatus;
-    private BigDecimal volume;
 }

@@ -28,27 +28,26 @@ public abstract class Order implements IOrder {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "price_information_id")
     private PriceInformation priceInformation;
-    private BigDecimal quantity;
+    private BigDecimal volume;
     @NonNull
     private OrderSide side;
     @NonNull
     private String ticker;
 
-    private BigDecimal volume;
     @Column
     private Timestamp creationTime;
     private OrderStatus orderStatus = OrderStatus.OPEN;
 
-    public Order(PriceInformation priceInformation, BigDecimal quantity, OrderSide orderSide, String ticker) {
+    public Order(PriceInformation priceInformation, BigDecimal volume, OrderSide orderSide, String ticker) {
         this.priceInformation = priceInformation;
-        this.quantity = quantity;
+        this.volume = volume;
         this.side = orderSide;
         this.ticker = ticker;
     }
 
     @Override
-    public void updateQuantity(BigDecimal remaining) {
-        this.setQuantity(remaining);
+    public void updateVolume(BigDecimal remaining) {
+        this.setVolume(remaining);
     }
 
     @Override
