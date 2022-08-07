@@ -73,15 +73,18 @@ public abstract class Order implements IOrder {
             orders = new ArrayList<>();
             changedOrders.put(action, orders);
         }
-        if (action == ExecutionAction.CLOSE) {
-            order.setOrderStatus(OrderStatus.CLOSED);
+        switch (action) {
+            case CLOSE:
+                order.setOrderStatus(OrderStatus.CLOSED);
+                break;
+            case UPDATE:
+            case PARTIAL_ADD:
+                order.setOrderStatus(OrderStatus.PARTIALLY_MATCHED);
+                break;
+            case ADD:
+                order.setOrderStatus(OrderStatus.OPEN);
         }
-        if (action == ExecutionAction.UPDATE || action == ExecutionAction.PARTIAL_ADD) {
-            order.setOrderStatus(OrderStatus.PARTIALLY_MATCHED);
-        }
-        if(action == ExecutionAction.ADD){
-            order.setOrderStatus(OrderStatus.OPEN);
-        }
+
         orders.add(order);
     }
 
