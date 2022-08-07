@@ -29,7 +29,8 @@ services:
         "spring.jpa.properties.hibernate.jdbc.time_zone" : "UTC",
         "spring.mvc.format.date" : "yyyy-MM-dd",
         "spring.mvc.format.date-time" : "yyyy-MM-dd HH:mm:ss",
-        "spring.mvc.format.time" : "HH:mm:ss"
+        "spring.mvc.format.time" : "HH:mm:ss",
+        "springdoc.swagger-ui.path" : "/swagger-ui-orderbook.html"
       }'
     volumes:
        - .m2:/root/.m2

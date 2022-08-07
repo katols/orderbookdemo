@@ -21,7 +21,6 @@ import java.util.*;
 @AllArgsConstructor
 @NoArgsConstructor
 public abstract class Order implements IOrder {
-    //TODO: fix id sequence
     @Id
     @GeneratedValue
     private Long id;
@@ -48,31 +47,41 @@ public abstract class Order implements IOrder {
         this.orderStatus = OrderStatus.OPEN;
     }
 
-
-    //TODO: Should the order be immutable or not?
     @Override
     public void updateQuantity(BigDecimal remaining) {
         this.setQuantity(remaining);
     }
+
     @Override
     public abstract Map<ExecutionAction, List<IOrder>> matchAgainstExistingOrders(IOrder order, TreeMap<PriceInformation, LinkedList<IOrder>> orders);
 
     @Override
-    public OrderStatus getOrderStatus(){
+    public OrderStatus getOrderStatus() {
         return this.orderStatus;
-    };
+    }
+
+    ;
+
     @Override
     public PriceInformation getPriceInformation() {
         return this.priceInformation;
     }
-    void updateChangedOrders(Map<ExecutionAction, List<IOrder>> changedOrders, ExecutionAction action, IOrder next) {
+
+    void updateChangedOrders(Map<ExecutionAction, List<IOrder>> changedOrders, ExecutionAction action, IOrder order) {
         List<IOrder> orders = changedOrders.get(action);
         if (orders == null) {
             orders = new ArrayList<>();
             changedOrders.put(action, orders);
         }
-        orders.add(next);
+        if (action == ExecutionAction.CLOSE) {
+            order.setOrderStatus(OrderStatus.CLOSED);
+        }
+        if (action == ExecutionAction.UPDATE || action == ExecutionAction.ADD) {
+            order.setOrderStatus(OrderStatus.PARTIALLY_MATCHED);
+        }
+        orders.add(order);
     }
+
     Map<ExecutionAction, List<IOrder>> initializeChangedOrders() {
         Map<ExecutionAction, List<IOrder>> changedOrders = new HashMap<>();
         changedOrders.put(ExecutionAction.ADD, new ArrayList<>());
@@ -80,6 +89,7 @@ public abstract class Order implements IOrder {
         changedOrders.put(ExecutionAction.UPDATE, new ArrayList<>());
         return changedOrders;
     }
+
     void closeOrder(Iterator<IOrder> iterator, IOrder nextOrder) {
         iterator.remove();
         nextOrder.setOrderStatus(OrderStatus.CLOSED);
@@ -89,8 +99,6 @@ public abstract class Order implements IOrder {
     private void createTimeStamp() {
         this.creationTime = Timestamp.from(ZonedDateTime.from(ZonedDateTime.now(ZoneId.of("UTC"))).toInstant());
     }
-
-
 
 
 }

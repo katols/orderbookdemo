@@ -65,10 +65,6 @@ public class OrderBook {
         return buy.add(sell);
     }
 
-    public BigDecimal getQuantityForSideAndPriceLevel(PriceInformation priceInformation, OrderSide side) {
-        return side.isBuy() ? getTotalQuantityForPriceLevel(buyOrders, priceInformation) : getTotalQuantityForPriceLevel(sellOrders, priceInformation);
-    }
-
     public boolean isEmpty(OrderSide side) {
         return side.isBuy() ? sellOrders.isEmpty() : buyOrders.isEmpty();
     }

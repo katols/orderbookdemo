@@ -23,7 +23,7 @@ public class PriceInformation implements Comparable<PriceInformation> {
     private BigDecimal price;
     private Currency currency;
 
-    public PriceInformation(BigDecimal price, Currency currency){
+    public PriceInformation(BigDecimal price, Currency currency) {
         this.price = price;
         this.currency = currency;
     }
@@ -43,7 +43,7 @@ public class PriceInformation implements Comparable<PriceInformation> {
 
         PriceInformation priceInformation = (PriceInformation) compareTo;
         return priceInformation.price.compareTo(this.price) == 0 &&
-               priceInformation.currency == this.currency;
+                priceInformation.currency == this.currency;
 
     }
 
@@ -55,5 +55,5 @@ public class PriceInformation implements Comparable<PriceInformation> {
         result = prime * result + currency.ordinal();
         return result;
     }
-    
+
 }

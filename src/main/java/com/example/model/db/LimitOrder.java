@@ -16,7 +16,7 @@ import java.util.*;
 @DiscriminatorValue("limit")
 public class LimitOrder extends Order {
 
-    public LimitOrder(PriceInformation priceInformation, BigDecimal quantity, OrderSide orderSide, String ticker, OrderStatus orderStatus){
+    public LimitOrder(PriceInformation priceInformation, BigDecimal quantity, OrderSide orderSide, String ticker, OrderStatus orderStatus) {
         super(priceInformation, quantity, orderSide, ticker, orderStatus);
     }
 
@@ -38,27 +38,32 @@ public class LimitOrder extends Order {
                     while (queueIterator.hasNext() && qtyAddedOrRemoved.signum() == 1) {
                         IOrder next = queueIterator.next();
                         BigDecimal remaining = next.getQuantity().subtract(qtyAddedOrRemoved);
-                        if (remaining.signum() == 0 || remaining.signum() == -1) {
+                        if (remaining.signum() <= 0) {
                             closeOrder(queueIterator, next);
                             qtyAddedOrRemoved = remaining.abs();
                             updateChangedOrders(changedOrders, ExecutionAction.CLOSE, next); //Tell the repository that order was updated to closed
+                            if (remaining.signum() == 0) {
+                                updateChangedOrders(changedOrders, ExecutionAction.CLOSE, order); //Tell the repository that order was updated to closed
+                            }
                         } else {
                             next.updateQuantity(remaining); //Om remaining >0 och side = other side = lägg ej till en ny order utan reducera den gamla. Inkommande order för liten.
                             updateChangedOrders(changedOrders, ExecutionAction.UPDATE, next); //Tell the repository that order was updated to new qty
+                            updateChangedOrders(changedOrders, ExecutionAction.CLOSE, order);
                             return changedOrders;
                         }
                     }
                 }
             }
             if (qtyAddedOrRemoved.signum() == 1) {
-                updateChangedOrders(changedOrders, ExecutionAction.ADD,
-                        new LimitOrder(order.getPriceInformation(), qtyAddedOrRemoved, order.getSide(), order.getTicker(), order.getOrderStatus()));
+                order.updateQuantity(qtyAddedOrRemoved.abs());
+                updateChangedOrders(changedOrders, ExecutionAction.ADD, order);
             }
             return changedOrders;
         }
 
 
     }
+
     private boolean isMatch(IOrder order, PriceInformation next) {
         return order.getSide().isBuy() ? (order.getPriceInformation().getPrice().compareTo(next.getPrice()) >= 0) : (order.getPriceInformation().getPrice().compareTo(next.getPrice()) <= 0);
     }
@@ -72,12 +77,11 @@ public class LimitOrder extends Order {
     public int hashCode() {
         int prime = 31;
         int result = 1;
-        result = prime * result + (int) getPriceInformation().getPrice().intValue();
+        result = prime * result + getPriceInformation().getPrice().intValue();
         result = prime * result + getQuantity().intValue();
         return result;
     }
 
-    //TODO: finish this equals method
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;

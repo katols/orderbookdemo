@@ -28,37 +28,32 @@ public class OrderBookService {
         this.orderBooks.put(orderBook.getTicker(), orderBook);
     }
 
-    public ExecutionStatus processOrder(LimitOrderDTO createOrder) {
+    public LimitOrderDTO processOrder(LimitOrderDTO createOrder) throws OrderbookException {
         OrderBook orderBook = orderBooks.get(createOrder.getTicker());
         if (orderBook == null) {
-            return ExecutionStatus.NOT_MATCHED;
+            createOrder.setOrderStatus(OrderStatus.OPEN);
+            throw new OrderbookException("Orderbook does not exist for this order.");
         }
-        Order order = orderRepository.save(OrderDTOMapper.fromDto(createOrder));
 
-        if (order.getQuantity().signum() == -1) {
+        if (createOrder.getQuantity().signum() == -1) {
             throw new IllegalArgumentException("Order must have a positive quantity.");
         }
 
+        Order order = orderRepository.save(OrderDTOMapper.fromDto(createOrder));
+
         if (orderBook.isEmpty(order.getSide())) {
             orderBook.addOrder(order);
-            return ExecutionStatus.NOT_MATCHED;
+            return OrderDTOMapper.toDto(order);
         }
 
         Map<ExecutionAction, List<IOrder>> changedOrders = orderBook.executeOrder(order);
-
-        persistChangedOrders(changedOrders, orderBook); //
-        ExecutionStatus executionStatus = determineStatus(changedOrders);
-
-        return executionStatus;
+        persistChangedOrders(changedOrders, orderBook);
+        return OrderDTOMapper.toDto(order);
 
     }
 
     public BigDecimal getTotalQuantityForPriceLevel(String ticker, PriceInformation orderValue) {
         return this.orderBooks.get(ticker).getTotalQuantityForPriceLevel(orderValue);
-    }
-
-    public BigDecimal getQuantityForSideAndPriceLevel(String ticker, PriceInformation price, OrderSide side){
-        return this.orderBooks.get(ticker).getQuantityForSideAndPriceLevel(price, side);
     }
 
     public List<LimitOrderDTO> getOrders(String ticker) {
@@ -68,61 +63,49 @@ public class OrderBookService {
         }
         return Collections.emptyList();
     }
-//TODO: Fugly casting?
-    public Optional<LimitOrderDTO> deleteOrder(Long id) {
-        Optional<LimitOrderDTO> searchResult = null;
-        Optional<Order> existingOrder = orderRepository.findById(id);
-        if(existingOrder.isPresent() && existingOrder.get() instanceof Order){
-            orderBooks.get(existingOrder.get().getTicker()).cancelOrder(existingOrder.get());
-            orderRepository.delete(existingOrder.get());
-            searchResult = Optional.ofNullable(OrderDTOMapper.toDto((Order) existingOrder.get()));
-        }
-        return searchResult;
-    }
 
-    public Optional<LimitOrderDTO> cancelOrder(Long id) {
-        Optional<LimitOrderDTO> byId = null;
+    public LimitOrderDTO cancelOrder(Long id) throws OrderbookException {
+        LimitOrderDTO byId;
         Optional<Order> searchResult = orderRepository.findById(id);
-        if (searchResult.isPresent() && searchResult.get() instanceof Order) {
+        if (searchResult.isPresent()) {
             searchResult.get().setOrderStatus(OrderStatus.CANCELLED);
             orderBooks.get(searchResult.get().getTicker()).cancelOrder(searchResult.get());
             orderRepository.save(searchResult.get());
-            byId = Optional.ofNullable(OrderDTOMapper.toDto((Order) searchResult.get()));
+            byId = OrderDTOMapper.toDto(searchResult.get());
+        } else {
+            throw new OrderbookException("Order to be deleted does not exist.");
         }
         return byId;
     }
 
     public Optional<LimitOrderDTO> findOrderById(Long id) {
-
         Optional<LimitOrderDTO> byId = null;
         Optional<Order> searchResult = orderRepository.findById(id);
-        if(searchResult.isPresent() && searchResult.get() instanceof Order){
-            byId = Optional.ofNullable(OrderDTOMapper.toDto((Order) searchResult.get()));
+        if (searchResult.isPresent()) {
+            byId = Optional.ofNullable(OrderDTOMapper.toDto(searchResult.get()));
         }
         return byId;
     }
 
-    public OrderStatisticsDTO getOrderSummaryByDate(String ticker, LocalDate date) {
+    public OrderStatisticsDTO getOrderSummaryByDate(String ticker, LocalDate date, OrderSide side) {
 
-        List<Order> matchingOrders = null;
+        List<Order> matchingOrders;
+        OrderStatisticsDTO statistics = null;
         List<Order> searchResult = orderRepository.search(ticker);
         if (searchResult != null && !searchResult.isEmpty()) {
-            matchingOrders = searchResult.stream().filter(t -> dateEquals(t.getCreationTime(), date)).collect(Collectors.toList());
+            matchingOrders = searchResult.stream().
+                    filter(t -> dateEquals(t.getCreationTime(), date)).
+                    filter(t -> t.getSide().equals(side)).collect(Collectors.toList());
+            if (!matchingOrders.isEmpty()) {
+                statistics = calculateOrderStatistics(matchingOrders);
+            }
         }
-        OrderStatisticsDTO statistics = calculateOrderStatistics(matchingOrders);
-
-
         return statistics;
     }
 
     private void persistChangedOrders(Map<ExecutionAction, List<IOrder>> changedOrders, OrderBook orderBook) {
         changedOrders.entrySet().stream().forEach(orderList ->
                 orderList.getValue().stream().forEach(order -> {
-                            Optional<Order> byId = orderRepository.findById(order.getId());
-                            if (byId.isPresent()) {
-                                //TODO: log this
-                                System.out.println("updating order with id " + order);
-                            }
                             Order newOrder = orderRepository.save((Order) order);
                             if (orderList.getKey() == ExecutionAction.ADD) {
                                 orderBook.addOrder(newOrder);
@@ -131,28 +114,22 @@ public class OrderBookService {
                 ));
     }
 
-    //If an entry with closed status exists, a partial or full match took place.
-    //If above is true and add exists, or if other update exists, then a partial match took place. if full match took place, only closed status order(s) exist.
-    //changedorders should never be empty.
-    private ExecutionStatus determineStatus(Map<ExecutionAction, List<IOrder>> changedOrders) {
-        List<IOrder> closedOrders = changedOrders.get(ExecutionAction.CLOSE);
-        if (!closedOrders.isEmpty()) { //partial or full match
-            if (changedOrders.get(ExecutionAction.UPDATE).isEmpty() && changedOrders.get(ExecutionAction.ADD).isEmpty()) {
-                return ExecutionStatus.MATCHED;
-            } else {
-                return ExecutionStatus.PARTIALLY_MATCHED;
-            }
-        } else {
-            return ExecutionStatus.NOT_MATCHED;
-        }
-    }
-
+    //Calculate min, max, average and qty of orders for that side for a given ticker and date
     private OrderStatisticsDTO calculateOrderStatistics(List<Order> matchingOrders) {
-        return new OrderStatisticsDTO();
+        BigDecimal minPrice = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice()).min(Comparator.naturalOrder()).orElse(BigDecimal.ZERO);
+        BigDecimal maxPrice = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice()).max(Comparator.naturalOrder()).orElse(BigDecimal.ZERO);
+        List<BigDecimal> weightedQuantities = matchingOrders.stream().map(t -> t.getQuantity()).collect(Collectors.toList());
+        List<BigDecimal> weightedPrices = matchingOrders.stream().map(t -> t.getPriceInformation().getPrice().multiply(t.getQuantity())).collect(Collectors.toList());
+        BigDecimal priceSum = weightedPrices.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal qtySum = weightedQuantities.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal averagePrice = priceSum.divide(qtySum);
+        int noOfOrders = matchingOrders.size();
+
+
+        return new OrderStatisticsDTO(minPrice, maxPrice, averagePrice, noOfOrders);
     }
 
     private boolean dateEquals(Timestamp t, LocalDate date) {
-        //t.toInstant().atZone(ZoneId.of("UTC")).toLocalDate().equals(date);
         return t.toLocalDateTime().toLocalDate().equals(date);
     }
 }
