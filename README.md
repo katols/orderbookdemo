@@ -1,3 +1,11 @@
+This application runs on: 
+
+* Spring Boot 2.7.1
+* Java JDK 12.0.1
+* Docker 20.10.17
+* MySQL 8.0.29
+
+
 
 This application can be run both with docker only and by starting the main class of the Spring Boot application.
 In the latter case MySQL needs to be setup separately (more details [here](https://hub.docker.com/_/mysql) ) 
@@ -7,7 +15,8 @@ started with the below docker commands, a useful approach when e.g. debugging th
 The following docker commands will launch a docker container with the database MySQL and another container 
 with the Spring Boot application. 
 
-To view the application, start your docker desktop application and run the following in your terminal window:
+To view the application, start your docker desktop application and run the following in your terminal window 
+in the root directory of the downloaded code:
 
 `docker-compose build`
 
