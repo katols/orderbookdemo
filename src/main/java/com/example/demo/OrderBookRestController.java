@@ -38,7 +38,7 @@ public class OrderBookRestController {
         return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
-    @PutMapping(path = "/cancel/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/cancel/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<LimitOrderDTO> cancelOrder(@PathVariable("id") Long id) {
         LimitOrderDTO order;
         try {
